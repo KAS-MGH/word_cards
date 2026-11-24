@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Карточки слов</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <main class="app">
+    <h1>Карточки слов</h1>
+
+    <nav class="tabs">
+      <button type="button" id="tab-train" class="tab active">Тренировка</button>
+      <button type="button" id="tab-deck" class="tab">Колода</button>
+    </nav>
+
+    <section id="view-train">
+      <p id="train-empty" class="hint" hidden>Добавьте первую карточку</p>
+      <div id="train-box" hidden>
+        <button type="button" id="card" class="card" aria-live="polite">
+          <span id="card-label" class="card-label"></span>
+          <span id="card-text" class="card-text"></span>
+        </button>
+        <button type="button" id="btn-show" class="btn">Показать</button>
+        <div id="answer-btns" class="row" hidden>
+          <button type="button" id="btn-unknown" class="btn btn-no">Не знаю</button>
+          <button type="button" id="btn-known" class="btn btn-yes">Знаю</button>
+        </div>
+      </div>
+    </section>
+
+    <section id="view-deck" hidden>
+      <form id="add-form" class="form" autocomplete="off">
+        <input id="in-word" type="text" placeholder="Слово" aria-label="Слово">
+        <input id="in-trans" type="text" placeholder="Перевод" aria-label="Перевод">
+        <button type="submit" class="btn">Добавить</button>
+        <p id="form-error" class="error" hidden></p>
+      </form>
+      <p id="deck-empty" class="hint" hidden>Добавьте первую карточку</p>
+      <ul id="list" class="list"></ul>
+    </section>
+  </main>
+  <script src="script.js"></script>
+</body>
+</html>

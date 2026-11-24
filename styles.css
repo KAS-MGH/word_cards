@@ -1,0 +1,88 @@
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  font-family: system-ui, "Segoe UI", Roboto, Arial, sans-serif;
+  font-size: 16px;
+  background: #f5f6f8;
+  color: #1f2430;
+}
+
+.app {
+  max-width: 520px;
+  margin: 0 auto;
+  padding: 12px;
+}
+
+h1 { font-size: 22px; margin: 8px 0 12px; }
+
+button, input {
+  font: inherit;
+  min-height: 44px;
+  border-radius: 8px;
+}
+
+input {
+  width: 100%;
+  padding: 8px 12px;
+  border: 1px solid #b8bdc9;
+  background: #fff;
+  color: inherit;
+}
+
+.btn, .tab {
+  padding: 8px 16px;
+  border: 1px solid #3b6fd4;
+  background: #3b6fd4;
+  color: #fff;
+  cursor: pointer;
+}
+
+.btn-yes { background: #2e8b57; border-color: #2e8b57; }
+.btn-no { background: #c0392b; border-color: #c0392b; }
+.btn-light { background: #fff; color: #1f2430; border-color: #b8bdc9; }
+
+.tabs { display: flex; gap: 8px; margin-bottom: 12px; }
+.tab { flex: 1; background: #fff; color: #1f2430; border-color: #b8bdc9; }
+.tab.active { background: #3b6fd4; color: #fff; border-color: #3b6fd4; }
+
+.card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  min-height: 180px;
+  margin-bottom: 12px;
+  padding: 16px;
+  border: 1px solid #b8bdc9;
+  background: #fff;
+  color: inherit;
+  cursor: pointer;
+}
+.card.back { background: #eef3ff; }
+.card-label { font-size: 13px; color: #6b7280; }
+.card-text { font-size: 28px; text-align: center; overflow-wrap: anywhere; }
+
+.btn { width: 100%; }
+.row { display: flex; gap: 8px; }
+.row .btn { flex: 1; }
+
+.form { display: flex; flex-direction: column; gap: 8px; margin-bottom: 12px; }
+.error { margin: 0; color: #c0392b; }
+.hint { text-align: center; color: #6b7280; padding: 24px 0; }
+
+.list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 8px; }
+.item {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 10px;
+  background: #fff;
+  border: 1px solid #d5d9e2;
+  border-radius: 8px;
+}
+.item-text { overflow-wrap: anywhere; }
+.item-text b { display: block; }
+.item .row .btn { width: auto; }
