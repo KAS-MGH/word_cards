@@ -16,11 +16,16 @@
     </nav>
 
     <section id="view-train">
+      <button type="button" id="btn-dir" class="btn btn-light dir">Слово → перевод</button>
       <p id="train-empty" class="hint" hidden>Добавьте первую карточку</p>
       <div id="train-box" hidden>
         <button type="button" id="card" class="card" aria-live="polite">
           <span id="card-label" class="card-label"></span>
           <span id="card-text" class="card-text"></span>
+          <span id="card-ex-box" class="card-ex-box" hidden>
+            <span class="card-label">Пример</span>
+            <span id="card-ex" class="card-ex"></span>
+          </span>
         </button>
         <button type="button" id="btn-show" class="btn">Показать</button>
         <div id="answer-btns" class="row" hidden>
@@ -34,10 +39,18 @@
       <form id="add-form" class="form" autocomplete="off">
         <input id="in-word" type="text" placeholder="Слово" aria-label="Слово">
         <input id="in-trans" type="text" placeholder="Перевод" aria-label="Перевод">
+        <input id="in-example" type="text" placeholder="Пример (необязательно)" aria-label="Пример">
         <button type="submit" class="btn">Добавить</button>
         <p id="form-error" class="error" hidden></p>
       </form>
+
+      <div class="search-row">
+        <input id="search" type="search" placeholder="Поиск" aria-label="Поиск" autocomplete="off">
+        <button type="button" id="btn-reset" class="btn btn-light">Сбросить</button>
+      </div>
+
       <p id="deck-empty" class="hint" hidden>Добавьте первую карточку</p>
+      <p id="search-empty" class="hint" hidden>Ничего не найдено</p>
       <ul id="list" class="list"></ul>
     </section>
   </main>

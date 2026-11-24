@@ -65,6 +65,27 @@ input {
 .card-label { font-size: 13px; color: #6b7280; }
 .card-text { font-size: 28px; text-align: center; overflow-wrap: anywhere; }
 
+.card-ex-box {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  margin-top: 8px;
+  padding-top: 8px;
+  border-top: 1px solid #d5d9e2;
+  width: 100%;
+}
+.card-ex { font-size: 16px; text-align: center; overflow-wrap: anywhere; }
+
+.dir { margin-bottom: 12px; }
+
+.search-row { display: flex; gap: 8px; margin-bottom: 12px; }
+.search-row input { flex: 1; min-width: 0; }
+.search-row .btn { width: auto; }
+
+.item-ex { display: block; margin-top: 4px; font-size: 14px; color: #6b7280; overflow-wrap: anywhere; }
+.item-ex b { display: inline; color: #1f2430; }
+
 .btn { width: 100%; }
 .row { display: flex; gap: 8px; }
 .row .btn { flex: 1; }
