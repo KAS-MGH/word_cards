@@ -83,7 +83,7 @@ input {
 .search-row input { flex: 1; min-width: 0; }
 .search-row .btn { width: auto; }
 
-.item-ex { display: block; margin-top: 4px; font-size: 14px; color: #6b7280; overflow-wrap: anywhere; }
+.item-ex { display: block; margin-top: 6px; padding-left: 8px; border-left: 3px solid #3b6fd4; font-size: 14px; color: #6b7280; overflow-wrap: anywhere; }
 .item-ex b { display: inline; color: #1f2430; }
 
 .btn { width: 100%; }
@@ -94,7 +94,7 @@ input {
 .error { margin: 0; color: #c0392b; }
 .hint { text-align: center; color: #6b7280; padding: 24px 0; }
 
-.list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 8px; }
+.list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 14px; }
 .item {
   display: flex;
   flex-direction: column;
