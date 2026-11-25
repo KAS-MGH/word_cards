@@ -39,10 +39,30 @@
 
   function $(id) { return document.getElementById(id); }
 
+  // день в формате ГГГГ-ММ-ДД, местное время
+  function today() {
+    var n = new Date();
+    var m = n.getMonth() + 1, d = n.getDate();
+    return n.getFullYear() + '-' + (m < 10 ? '0' : '') + m + '-' + (d < 10 ? '0' : '') + d;
+  }
+
+  // дополняет старые карточки новыми полями (спецификация 004), ничего не удаляя
+  function normalizeCard(c) {
+    var b = Number(c.box);
+    c.box = isFinite(b) ? Math.max(0, Math.min(5, Math.floor(b))) : 0;
+    if (typeof c.nextReview !== 'string' || !c.nextReview) c.nextReview = today();
+    if (!Array.isArray(c.history)) c.history = [];
+    c.known = Number(c.known) || 0;
+    c.unknown = Number(c.unknown) || 0;
+  }
+
   function load() {
     try {
       var d = JSON.parse(localStorage.getItem(KEY));
-      if (d && Array.isArray(d.cards)) return { cards: d.cards, step: d.step || 0 };
+      if (d && Array.isArray(d.cards)) {
+        d.cards.forEach(normalizeCard);
+        return { cards: d.cards, step: d.step || 0 };
+      }
     } catch (e) { /* пусто или повреждено */ }
     return { cards: [], step: 0 };
   }
@@ -333,7 +353,8 @@
     $('card-pos').textContent = wordVisible ? pos : '';
     $('card-tr').hidden = !(wordVisible && tr);
     $('card-pos').hidden = !(wordVisible && pos);
-    $('card-meta').hidden = !(wordVisible && (tr || pos));
+    $('card-level').textContent = 'Уровень ' + (card.box || 0);
+    $('card-meta').hidden = !wordVisible;
 
     var note = card.note || '';
     $('card-note-box').hidden = !(wordVisible && note);
@@ -355,7 +376,7 @@
     if (!card || !flipped) return;
     data.step += 1;
     if (known) {
-      card.box = Math.min((card.box || 0) + 1, 6);
+      card.box = Math.min((card.box || 0) + 1, 5);
       card.due = data.step + 4 * Math.pow(2, card.box);
     } else {
       card.box = 0;
@@ -514,6 +535,10 @@
           lc.textContent = langLabel;
           head.appendChild(lc);
         }
+        var lv = document.createElement('span');
+        lv.className = 'chip';
+        lv.textContent = 'Уровень ' + (c.box || 0);
+        head.appendChild(lv);
         if (c.transcription) {
           var trs = document.createElement('span');
           trs.className = 'item-tr';
@@ -629,7 +654,11 @@
       note: $('in-note').value.trim(),
       tags: parseTags($('in-tags').value),
       box: 0,
-      due: data.step
+      due: data.step,
+      nextReview: today(),
+      history: [],
+      known: 0,
+      unknown: 0
     });
     settings.lastLang = $('in-lang').value;
     saveSettings();
