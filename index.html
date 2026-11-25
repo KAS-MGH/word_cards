@@ -15,18 +15,30 @@
       <button type="button" id="tab-deck" class="tab">Колода</button>
     </nav>
 
+    <p id="tts-msg" class="error" role="status" hidden></p>
+
     <section id="view-train">
       <button type="button" id="btn-dir" class="btn btn-light dir">Слово → перевод</button>
+      <div id="tag-bar-train" class="tag-bar" hidden></div>
       <p id="train-empty" class="hint" hidden>Добавьте первую карточку</p>
       <div id="train-box" hidden>
         <button type="button" id="card" class="card" aria-live="polite">
           <span id="card-label" class="card-label"></span>
           <span id="card-text" class="card-text"></span>
+          <span id="card-meta" class="card-meta" hidden>
+            <span id="card-tr" class="card-tr"></span>
+            <span id="card-pos" class="chip"></span>
+          </span>
           <span id="card-ex-box" class="card-ex-box" hidden>
             <span class="card-label">Пример</span>
             <span id="card-ex" class="card-ex"></span>
           </span>
+          <span id="card-note-box" class="card-ex-box" hidden>
+            <span class="card-label">Заметка</span>
+            <span id="card-note" class="card-ex card-note-text"></span>
+          </span>
         </button>
+        <button type="button" id="btn-speak" class="btn btn-light speak" hidden>🔊 Слушать</button>
         <button type="button" id="btn-show" class="btn">Показать</button>
         <div id="answer-btns" class="row" hidden>
           <button type="button" id="btn-unknown" class="btn btn-no">Не знаю</button>
@@ -37,9 +49,23 @@
 
     <section id="view-deck" hidden>
       <form id="add-form" class="form" autocomplete="off">
-        <input id="in-word" type="text" placeholder="Слово" aria-label="Слово">
-        <input id="in-trans" type="text" placeholder="Перевод" aria-label="Перевод">
-        <input id="in-example" type="text" placeholder="Пример (необязательно)" aria-label="Пример">
+        <div class="frow top">
+          <input id="in-word" class="f-word" type="text" placeholder="Слово" aria-label="Слово">
+          <select id="in-lang" aria-label="Язык слова"></select>
+          <div class="f-tr">
+            <input id="in-tr" type="text" placeholder="Транскрипция" aria-label="Транскрипция">
+            <div id="in-sugg" class="sugg" hidden></div>
+          </div>
+          <select id="in-pos" aria-label="Часть речи"></select>
+        </div>
+        <div class="frow mid">
+          <input id="in-trans" type="text" placeholder="Перевод" aria-label="Перевод">
+          <div class="fcol">
+            <input id="in-example" type="text" placeholder="Пример (необязательно)" aria-label="Пример">
+            <textarea id="in-note" rows="2" placeholder="Моя заметка (необязательно)" aria-label="Моя заметка"></textarea>
+          </div>
+        </div>
+        <input id="in-tags" type="text" placeholder="Тематики через запятую (необязательно)" aria-label="Теги">
         <button type="submit" class="btn">Добавить</button>
         <p id="form-error" class="error" hidden></p>
       </form>
@@ -49,11 +75,14 @@
         <button type="button" id="btn-reset" class="btn btn-light">Сбросить</button>
       </div>
 
+      <div id="tag-bar-deck" class="tag-bar" hidden></div>
+
       <p id="deck-empty" class="hint" hidden>Добавьте первую карточку</p>
       <p id="search-empty" class="hint" hidden>Ничего не найдено</p>
       <ul id="list" class="list"></ul>
     </section>
   </main>
+  <script src="dict.js"></script>
   <script src="script.js"></script>
 </body>
 </html>
