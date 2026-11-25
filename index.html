@@ -25,6 +25,20 @@
         <p class="hint">На сегодня всё повторено</p>
         <button type="button" id="btn-practice" class="btn">Тренировать всё равно</button>
       </div>
+      <div id="train-summary" class="summary" hidden>
+        <h2>Итог сессии</h2>
+        <ul class="sum-list">
+          <li>Карточек: <b id="sum-total"></b></li>
+          <li>Сразу запомнили: <b id="sum-first"></b></li>
+          <li>Пришлось повторять: <b id="sum-hardcount"></b></li>
+          <li>Ответов всего: <b id="sum-answers"></b></li>
+        </ul>
+        <div id="sum-hard-box" hidden>
+          <h3>Сложные слова</h3>
+          <ul id="sum-hard" class="hard-list"></ul>
+        </div>
+        <button type="button" id="btn-new" class="btn">Новая сессия</button>
+      </div>
       <div id="train-box" hidden>
         <button type="button" id="card" class="card" aria-live="polite">
           <span id="card-label" class="card-label"></span>

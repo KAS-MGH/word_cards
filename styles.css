@@ -153,3 +153,10 @@ textarea { min-height: 64px; resize: vertical; }
 .frow.top { align-items: flex-start; }
 
 #tts-msg { padding: 8px 12px; margin: 0 0 8px; border-radius: 8px; background: #fdecea; border: 1px solid #c0392b; }
+
+.summary { background: #fff; border: 1px solid #b8bdc9; border-radius: 8px; padding: 16px; }
+.summary h2 { font-size: 20px; margin: 0 0 8px; }
+.summary h3 { font-size: 16px; margin: 12px 0 4px; }
+.sum-list, .hard-list { margin: 0 0 12px; padding-left: 20px; }
+.sum-list li, .hard-list li { padding: 2px 0; overflow-wrap: anywhere; }
+.summary .btn { width: 100%; }

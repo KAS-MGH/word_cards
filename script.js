@@ -309,6 +309,7 @@
   var sessionQ = null;   // очередь сессии: id карточек (только в памяти); null — собрать заново
   var failed = {};       // id карточек, на которые в этой сессии уже ответили «Не знаю»
   var practiceAll = false;  // «Тренировать всё равно»
+  var stats = { total: 0, known: 0, unknown: 0, first: {}, firstOk: 0 };  // счётчики для итога (только в памяти)
 
   function addDays(n) {
     var d = new Date();
@@ -328,8 +329,33 @@
     });
   }
 
+  function newStats(total) {
+    return { total: total, known: 0, unknown: 0, first: {}, firstOk: 0 };
+  }
+
+  function renderSummary() {
+    $('sum-total').textContent = stats.total;
+    $('sum-answers').textContent = (stats.known + stats.unknown) + ' (Знаю ' + stats.known + ', Не знаю ' + stats.unknown + ')';
+    $('sum-first').textContent = stats.firstOk + ' из ' + stats.total + ' (' +
+      (stats.total ? Math.round(stats.firstOk * 100 / stats.total) : 0) + '%)';
+    var hard = Object.keys(failed).map(findCard).filter(Boolean);
+    $('sum-hardcount').textContent = hard.length;
+    var list = $('sum-hard');
+    list.textContent = '';
+    hard.forEach(function (c) {
+      var li = document.createElement('li');
+      var b = document.createElement('b');
+      b.textContent = c.word;
+      li.appendChild(b);
+      li.appendChild(document.createTextNode(' — ' + c.translation));
+      list.appendChild(li);
+    });
+    $('sum-hard-box').hidden = hard.length === 0;
+  }
+
   function resetSession() {
     sessionQ = null;
+    stats = newStats(0);
     failed = {};
     current = null;
     flipped = false;
@@ -343,12 +369,14 @@
     if (empty) {
       $('train-box').hidden = true;
       $('train-done').hidden = true;
+      $('train-summary').hidden = true;
       return;
     }
 
     if (!sessionQ) {
       sessionQ = queue().map(function (c) { return c.id; });
       failed = {};
+      stats = newStats(sessionQ.length);
     }
     // удалённые или выпавшие из выбранной области карточки убираем из очереди
     sessionQ = sessionQ.filter(function (id) {
@@ -357,13 +385,19 @@
     });
     var card = sessionQ.length ? findCard(sessionQ[0]) : null;
     var done = !card;
-    $('train-done').hidden = !done;
+    var summary = done && stats.total > 0;
+    $('train-done').hidden = !done || summary;
+    $('train-summary').hidden = !summary;
     $('train-box').hidden = done;
     if (done) {
-      practiceAll = false;
-      sessionQ = null;
       current = null;
       flipped = false;
+      if (summary) {
+        renderSummary();   // сессия остаётся «пустой» в памяти до нажатия «Новая сессия»
+      } else {
+        practiceAll = false;
+        sessionQ = null;
+      }
       return;
     }
     if (current !== card.id) flipped = false;
@@ -412,6 +446,11 @@
     var card = findCard(current);
     if (!card || !flipped) return;
     sessionQ.shift();
+    if (!stats.first.hasOwnProperty(card.id)) {
+      stats.first[card.id] = known;
+      if (known) stats.firstOk += 1;
+    }
+    if (known) stats.known += 1; else stats.unknown += 1;
     if (known) {
       // «Знаю» на повторе в той же сессии — уровень 1 и «завтра»
       card.box = failed[card.id] ? 1 : Math.min((card.box || 0) + 1, 5);
@@ -739,6 +778,11 @@
   $('btn-dir').addEventListener('click', toggleDirection);
   $('btn-practice').addEventListener('click', function () {
     practiceAll = true;
+    resetSession();
+    renderTrain();
+  });
+  $('btn-new').addEventListener('click', function () {
+    practiceAll = false;
     resetSession();
     renderTrain();
   });
