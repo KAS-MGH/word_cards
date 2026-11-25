@@ -167,8 +167,7 @@
         var b = button(t === null ? 'Все' : t, 'btn btn-light' + (settings.activeTag === t ? ' active' : ''), function () {
           settings.activeTag = t;
           saveSettings();
-          current = null;
-          flipped = false;
+          resetSession();
           if (!$('view-train').hidden) renderTrain(); else renderList();
         });
         b.setAttribute('aria-pressed', settings.activeTag === t ? 'true' : 'false');
@@ -307,7 +306,8 @@
 
   // ---------- тренировка ----------
   var INTERVALS = [0, 1, 3, 7, 14, 30];  // дней до повторения по уровням
-  var answered = [];     // карточки, на которые уже ответили в этой сессии (только в памяти)
+  var sessionQ = null;   // очередь сессии: id карточек (только в памяти); null — собрать заново
+  var failed = {};       // id карточек, на которые в этой сессии уже ответили «Не знаю»
   var practiceAll = false;  // «Тренировать всё равно»
 
   function addDays(n) {
@@ -321,15 +321,18 @@
   function queue() {
     var t = today();
     return data.cards.filter(function (c) {
-      return inScope(c) && answered.indexOf(c.id) < 0 && (practiceAll || c.nextReview <= t);
+      return inScope(c) && (practiceAll || c.nextReview <= t);
     }).sort(function (a, b) {
       if (a.nextReview !== b.nextReview) return a.nextReview < b.nextReview ? -1 : 1;
       return a.box - b.box;
     });
   }
 
-  function pickNext() {
-    return queue()[0] || null;
+  function resetSession() {
+    sessionQ = null;
+    failed = {};
+    current = null;
+    flipped = false;
   }
 
   function renderTrain() {
@@ -343,20 +346,27 @@
       return;
     }
 
-    var card = current && findCard(current);
-    if (card && (!inScope(card) || answered.indexOf(card.id) >= 0)) card = null;
-    if (!card) {
-      card = pickNext();
-      flipped = false;
+    if (!sessionQ) {
+      sessionQ = queue().map(function (c) { return c.id; });
+      failed = {};
     }
+    // удалённые или выпавшие из выбранной области карточки убираем из очереди
+    sessionQ = sessionQ.filter(function (id) {
+      var c = findCard(id);
+      return c && inScope(c);
+    });
+    var card = sessionQ.length ? findCard(sessionQ[0]) : null;
     var done = !card;
     $('train-done').hidden = !done;
     $('train-box').hidden = done;
     if (done) {
       practiceAll = false;
+      sessionQ = null;
       current = null;
+      flipped = false;
       return;
     }
+    if (current !== card.id) flipped = false;
     current = card.id;
     var front = settings.reverse ? card.translation : card.word;
     var back = settings.reverse ? card.word : card.translation;
@@ -401,18 +411,22 @@
   function answer(known) {
     var card = findCard(current);
     if (!card || !flipped) return;
+    sessionQ.shift();
     if (known) {
-      card.box = Math.min((card.box || 0) + 1, 5);
+      // «Знаю» на повторе в той же сессии — уровень 1 и «завтра»
+      card.box = failed[card.id] ? 1 : Math.min((card.box || 0) + 1, 5);
       card.nextReview = addDays(INTERVALS[card.box]);
       card.known += 1;
     } else {
       card.box = 0;
       card.nextReview = today();
       card.unknown += 1;
+      failed[card.id] = true;
+      // возвращаем примерно через 3 карточки (если очередь короче — в конец)
+      sessionQ.splice(Math.min(3, sessionQ.length), 0, card.id);
     }
     card.history.push({ d: today(), ok: known });
     if (card.history.length > 50) card.history = card.history.slice(-50);
-    answered.push(card.id);
     save();
     flipped = false;
     current = null;
@@ -725,12 +739,7 @@
   $('btn-dir').addEventListener('click', toggleDirection);
   $('btn-practice').addEventListener('click', function () {
     practiceAll = true;
-    // карточки выбранной области снова доступны, даже если на них уже ответили
-    answered = answered.filter(function (id) {
-      var c = findCard(id);
-      return c && !inScope(c);
-    });
-    current = null;
+    resetSession();
     renderTrain();
   });
   $('add-form').addEventListener('submit', addCard);
