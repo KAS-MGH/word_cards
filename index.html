@@ -20,6 +20,7 @@
     <section id="view-train">
       <button type="button" id="btn-dir" class="btn btn-light dir">Слово → перевод</button>
       <div id="tag-bar-train" class="tag-bar" hidden></div>
+      <p id="repeat-label" class="repeat-label" hidden>Повтор сложных</p>
       <p id="train-empty" class="hint" hidden>Добавьте первую карточку</p>
       <div id="train-done" hidden>
         <p class="hint">На сегодня всё повторено</p>
@@ -37,7 +38,10 @@
           <h3>Сложные слова</h3>
           <ul id="sum-hard" class="hard-list"></ul>
         </div>
-        <button type="button" id="btn-new" class="btn">Новая сессия</button>
+        <div class="row">
+          <button type="button" id="btn-repeat" class="btn btn-light" hidden>Повторить сложные</button>
+          <button type="button" id="btn-new" class="btn">Новая сессия</button>
+        </div>
       </div>
       <div id="train-box" hidden>
         <button type="button" id="card" class="card" aria-live="polite">

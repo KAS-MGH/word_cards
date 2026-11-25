@@ -309,6 +309,7 @@
   var sessionQ = null;   // очередь сессии: id карточек (только в памяти); null — собрать заново
   var failed = {};       // id карточек, на которые в этой сессии уже ответили «Не знаю»
   var practiceAll = false;  // «Тренировать всё равно»
+  var repeatMode = false;   // «Повтор сложных»: уровни и даты не меняются
   var stats = { total: 0, known: 0, unknown: 0, first: {}, firstOk: 0 };  // счётчики для итога (только в памяти)
 
   function addDays(n) {
@@ -351,9 +352,24 @@
       list.appendChild(li);
     });
     $('sum-hard-box').hidden = hard.length === 0;
+    $('btn-repeat').hidden = hard.length === 0;
+  }
+
+  // отдельная сессия только из сложных слов прошлой сессии
+  function startRepeat() {
+    var ids = Object.keys(failed).filter(function (id) { return findCard(id); });
+    if (!ids.length) return;
+    repeatMode = true;
+    sessionQ = ids;
+    failed = {};
+    stats = newStats(ids.length);
+    current = null;
+    flipped = false;
+    renderTrain();
   }
 
   function resetSession() {
+    repeatMode = false;
     sessionQ = null;
     stats = newStats(0);
     failed = {};
@@ -366,6 +382,7 @@
     renderTagBars();
     var empty = data.cards.length === 0;
     $('train-empty').hidden = !empty;
+    $('repeat-label').hidden = empty || !repeatMode;
     if (empty) {
       $('train-box').hidden = true;
       $('train-done').hidden = true;
@@ -451,7 +468,14 @@
       if (known) stats.firstOk += 1;
     }
     if (known) stats.known += 1; else stats.unknown += 1;
-    if (known) {
+    if (repeatMode) {
+      // повтор сложных: уровни, даты и счётчики не трогаем, только история
+      if (!known) {
+        failed[card.id] = true;
+        sessionQ.splice(Math.min(3, sessionQ.length), 0, card.id);
+      }
+      card.history.push({ d: today(), ok: known, r: true });
+    } else if (known) {
       // «Знаю» на повторе в той же сессии — уровень 1 и «завтра»
       card.box = failed[card.id] ? 1 : Math.min((card.box || 0) + 1, 5);
       card.nextReview = addDays(INTERVALS[card.box]);
@@ -464,7 +488,7 @@
       // возвращаем примерно через 3 карточки (если очередь короче — в конец)
       sessionQ.splice(Math.min(3, sessionQ.length), 0, card.id);
     }
-    card.history.push({ d: today(), ok: known });
+    if (!repeatMode) card.history.push({ d: today(), ok: known });
     if (card.history.length > 50) card.history = card.history.slice(-50);
     save();
     flipped = false;
@@ -781,6 +805,7 @@
     resetSession();
     renderTrain();
   });
+  $('btn-repeat').addEventListener('click', startRepeat);
   $('btn-new').addEventListener('click', function () {
     practiceAll = false;
     resetSession();
