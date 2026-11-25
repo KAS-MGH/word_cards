@@ -306,14 +306,30 @@
   }
 
   // ---------- тренировка ----------
-  function pickNext() {
-    var best = null;
-    var pool = data.cards.filter(inScope);
-    pool.forEach(function (c) {
-      if (pool.length > 1 && c.id === current) return;
-      if (!best || c.due < best.due) best = c;
+  var INTERVALS = [0, 1, 3, 7, 14, 30];  // дней до повторения по уровням
+  var answered = [];     // карточки, на которые уже ответили в этой сессии (только в памяти)
+  var practiceAll = false;  // «Тренировать всё равно»
+
+  function addDays(n) {
+    var d = new Date();
+    d = new Date(d.getFullYear(), d.getMonth(), d.getDate() + n);
+    var m = d.getMonth() + 1, dd = d.getDate();
+    return d.getFullYear() + '-' + (m < 10 ? '0' : '') + m + '-' + (dd < 10 ? '0' : '') + dd;
+  }
+
+  // очередь: нужные на сегодня (или все, если «Тренировать всё равно»); раньше дата — раньше показ, при равенстве — меньший уровень
+  function queue() {
+    var t = today();
+    return data.cards.filter(function (c) {
+      return inScope(c) && answered.indexOf(c.id) < 0 && (practiceAll || c.nextReview <= t);
+    }).sort(function (a, b) {
+      if (a.nextReview !== b.nextReview) return a.nextReview < b.nextReview ? -1 : 1;
+      return a.box - b.box;
     });
-    return best;
+  }
+
+  function pickNext() {
+    return queue()[0] || null;
   }
 
   function renderTrain() {
@@ -321,16 +337,27 @@
     renderTagBars();
     var empty = data.cards.length === 0;
     $('train-empty').hidden = !empty;
-    $('train-box').hidden = empty;
-    if (empty) return;
+    if (empty) {
+      $('train-box').hidden = true;
+      $('train-done').hidden = true;
+      return;
+    }
 
     var card = current && findCard(current);
-    if (card && !inScope(card)) card = null;
+    if (card && (!inScope(card) || answered.indexOf(card.id) >= 0)) card = null;
     if (!card) {
       card = pickNext();
-      current = card.id;
       flipped = false;
     }
+    var done = !card;
+    $('train-done').hidden = !done;
+    $('train-box').hidden = done;
+    if (done) {
+      practiceAll = false;
+      current = null;
+      return;
+    }
+    current = card.id;
     var front = settings.reverse ? card.translation : card.word;
     var back = settings.reverse ? card.word : card.translation;
     var frontLabel = settings.reverse ? 'Перевод' : 'Слово';
@@ -374,19 +401,21 @@
   function answer(known) {
     var card = findCard(current);
     if (!card || !flipped) return;
-    data.step += 1;
     if (known) {
       card.box = Math.min((card.box || 0) + 1, 5);
-      card.due = data.step + 4 * Math.pow(2, card.box);
+      card.nextReview = addDays(INTERVALS[card.box]);
+      card.known += 1;
     } else {
       card.box = 0;
-      card.due = data.step + 2;
+      card.nextReview = today();
+      card.unknown += 1;
     }
+    card.history.push({ d: today(), ok: known });
+    if (card.history.length > 50) card.history = card.history.slice(-50);
+    answered.push(card.id);
     save();
     flipped = false;
-    // current остаётся прежним, чтобы pickNext не выдал её сразу же
-    var next = pickNext();
-    current = next.id;
+    current = null;
     renderTrain();
   }
 
@@ -694,6 +723,16 @@
   $('btn-known').addEventListener('click', function () { answer(true); });
   $('btn-unknown').addEventListener('click', function () { answer(false); });
   $('btn-dir').addEventListener('click', toggleDirection);
+  $('btn-practice').addEventListener('click', function () {
+    practiceAll = true;
+    // карточки выбранной области снова доступны, даже если на них уже ответили
+    answered = answered.filter(function (id) {
+      var c = findCard(id);
+      return c && !inScope(c);
+    });
+    current = null;
+    renderTrain();
+  });
   $('add-form').addEventListener('submit', addCard);
   $('search').addEventListener('input', function () {
     query = $('search').value;
