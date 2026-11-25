@@ -30,6 +30,8 @@ input {
   color: inherit;
 }
 
+[hidden] { display: none !important; }
+
 .btn, .tab {
   padding: 8px 16px;
   border: 1px solid #3b6fd4;
