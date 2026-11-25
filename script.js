@@ -118,7 +118,9 @@
     $('card-text').textContent = flipped ? back : front;
 
     var ex = card.example || '';
-    var showEx = flipped && ex !== '';
+    // пример показываем только там, где видно слово (не рядом с переводом)
+    var wordVisible = settings.reverse ? flipped : !flipped;
+    var showEx = wordVisible && ex !== '';
     $('card-ex-box').hidden = !showEx;
     if (showEx) fillExample($('card-ex'), ex, card.word);
 
@@ -229,13 +231,13 @@
         var s = document.createElement('span');
         s.textContent = c.translation;
         text.appendChild(b);
-        text.appendChild(s);
         if (c.example) {
           var ex = document.createElement('span');
           ex.className = 'item-ex';
           fillExample(ex, c.example, c.word);
           text.appendChild(ex);
         }
+        text.appendChild(s);
         var row2 = document.createElement('div');
         row2.className = 'row';
         if (c.id === confirmId) {
