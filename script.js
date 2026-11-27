@@ -288,7 +288,17 @@
     container.textContent = '';
     var lower = example.toLowerCase();
     var w = String(word || '').trim().toLowerCase();
-    var idx = (w && lower.length === example.length) ? lower.indexOf(w) : -1;
+    var idx = -1;
+    if (w && lower.length === example.length) {
+      var isLetter = function (ch) { return !!ch && /[\p{L}\p{N}]/u.test(ch); };
+      var from = 0;
+      while (true) {
+        var p = lower.indexOf(w, from);
+        if (p < 0) break;
+        if (!isLetter(lower.charAt(p - 1)) && !isLetter(lower.charAt(p + w.length))) { idx = p; break; }
+        from = p + 1;
+      }
+    }
     if (idx < 0) {
       container.appendChild(document.createTextNode(example));
       return;
