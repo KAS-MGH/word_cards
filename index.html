@@ -10,6 +10,7 @@
   <main class="app">
     <h1>Карточки слов</h1>
     <select id="deck-select" class="deck-select" aria-label="Активная колода"></select>
+    <div id="deck-top-progress" class="deck-progress"></div>
 
     <nav class="tabs">
       <button type="button" id="tab-train" class="tab active">Тренировка</button>
@@ -32,10 +33,18 @@
         <h2>Итог сессии</h2>
         <ul class="sum-list">
           <li>Карточек: <b id="sum-total"></b></li>
-          <li>Сразу запомнили: <b id="sum-first"></b></li>
+          <li>С первого раза в этой сессии: <b id="sum-first"></b></li>
           <li>Пришлось повторять: <b id="sum-hardcount"></b></li>
+          <li>Уровни в колоде:
+            <ul class="sum-sub">
+              <li>не выучено (уровень 0–3): <b id="sum-lo"></b></li>
+              <li>выучено (уровень 4–5): <b id="sum-hi"></b></li>
+            </ul>
+          </li>
           <li>Ответов всего: <b id="sum-answers"></b></li>
         </ul>
+        <h3>Колода: <span id="sum-deck-name"></span></h3>
+        <div id="sum-deck-progress" class="deck-progress"></div>
         <div id="sum-hard-box" hidden>
           <h3>Сложные слова</h3>
           <ul id="sum-hard" class="hard-list"></ul>

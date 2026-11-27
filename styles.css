@@ -178,3 +178,8 @@ textarea { min-height: 64px; resize: vertical; }
 .repeat-label { text-align: center; font-weight: 700; margin: 8px 0; }
 
 .deck-select { width: 100%; margin: 0 0 12px; }
+.deck-progress { margin: 8px 0; }
+.deck-progress .small { margin: 0 0 6px; overflow-wrap: anywhere; }
+.bar { height: 10px; background: #e5e7eb; border-radius: 5px; overflow: hidden; }
+.bar-fill { height: 100%; background: #16a34a; }
+.sum-sub { margin: 4px 0 0; padding-left: 18px; list-style: disc; }

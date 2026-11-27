@@ -120,6 +120,7 @@
       sel.appendChild(op);
     });
     sel.value = activeDeck().id;
+    renderTopProgress();
   }
 
   function setActiveDeck(id) {
@@ -141,6 +142,36 @@
 
   function save() {
     try { localStorage.setItem(KEY, JSON.stringify(data)); } catch (e) { /* ignore */ }
+    renderTopProgress();
+  }
+
+  // «Выучено X из N · На сегодня: K» и полоска; считается из карточек при каждом показе
+  function fillProgress(box, deckId) {
+    box.textContent = '';
+    var t = today(), n = 0, learned = 0, due = 0;
+    data.cards.forEach(function (c) {
+      if (c.deck !== deckId) return;
+      n++;
+      if (c.box >= 4) learned++;
+      if (c.nextReview <= t) due++;
+    });
+    var p = document.createElement('p');
+    p.className = 'small';
+    if (n === 0) { p.textContent = 'Пока пусто'; box.appendChild(p); return; }
+    p.textContent = 'Выучено ' + learned + ' из ' + n + ' (уровень 4–5) · На сегодня: ' + due;
+    var bar = document.createElement('div');
+    bar.className = 'bar';
+    var fill = document.createElement('div');
+    fill.className = 'bar-fill';
+    fill.style.width = Math.round(learned / n * 100) + '%';
+    bar.appendChild(fill);
+    box.appendChild(p);
+    box.appendChild(bar);
+  }
+
+  function renderTopProgress() {
+    var box = $('deck-top-progress');
+    if (box && data.decks.length) fillProgress(box, activeDeck().id);
   }
 
   function loadSettings() {
@@ -476,6 +507,10 @@
         cnt.textContent = n + ' ' + plural(n, 'карточка', 'карточки', 'карточек');
         head.appendChild(cnt);
         li.appendChild(head);
+        var prog = document.createElement('div');
+        prog.className = 'deck-progress';
+        fillProgress(prog, k.id);
+        li.appendChild(prog);
         var row2 = document.createElement('div');
         row2.className = 'row';
         if (k.id === deckConfirmId) {
@@ -575,6 +610,12 @@
   function renderSummary() {
     $('sum-total').textContent = stats.total;
     $('sum-answers').textContent = (stats.known + stats.unknown) + ' (Знаю ' + stats.known + ', Не знаю ' + stats.unknown + ')';
+    $('sum-deck-name').textContent = activeDeck().name;
+    fillProgress($('sum-deck-progress'), activeDeck().id);
+    var hi = 0, lo = 0;
+    deckCards().forEach(function (c) { if (c.box >= 4) hi++; else lo++; });
+    $('sum-lo').textContent = lo + ' ' + plural(lo, 'слово', 'слова', 'слов');
+    $('sum-hi').textContent = hi + ' ' + plural(hi, 'слово', 'слова', 'слов');
     $('sum-first').textContent = stats.firstOk + ' из ' + stats.total + ' (' +
       (stats.total ? Math.round(stats.firstOk * 100 / stats.total) : 0) + '%)';
     var hard = Object.keys(failed).map(findCard).filter(Boolean);
