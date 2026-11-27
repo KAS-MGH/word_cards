@@ -788,6 +788,16 @@
     settings.lastLang = $('in-lang').value;
     saveSettings();
     save();
+    // новая карточка попадает в тренировку: в идущую сессию — в конец очереди, после итога — новая сессия
+    if (sessionQ && !repeatMode) {
+      var added = data.cards[data.cards.length - 1];
+      if (!sessionQ.length) {
+        resetSession();
+      } else if (inScope(added)) {
+        sessionQ.push(added.id);
+        stats.total++;
+      }
+    }
     $('in-word').value = '';
     $('in-trans').value = '';
     $('in-example').value = '';
