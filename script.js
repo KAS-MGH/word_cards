@@ -31,6 +31,7 @@
   var ttsTimer = null;
   var liveUtterances = [];
   var speakToken = 0;
+  var ttsEl = null, ttsHome = null, ttsNext = null;
   var current = null;   // id карточки в тренировке
   var flipped = false;
   var editingId = null;
@@ -178,9 +179,16 @@
 
   // ---------- озвучка ----------
   function ttsMessage(text, host) {
-    var m = $('tts-msg');
+    // элемент и его исходное место запоминаем один раз: список очищается и уносит сообщение с собой
+    if (!ttsEl) {
+      ttsEl = $('tts-msg');
+      ttsHome = ttsEl.parentNode;
+      ttsNext = ttsEl.nextSibling;
+    }
+    var m = ttsEl;
     // показываем сообщение над словом: первым элементом в карточке, где нажали «Слушать»
-    if (host) host.insertBefore(m, host.firstChild);
+    if (host && host.isConnected) host.insertBefore(m, host.firstChild);
+    else if (!m.isConnected || (host && !host.isConnected)) ttsHome.insertBefore(m, ttsNext && ttsNext.parentNode === ttsHome ? ttsNext : null);
     m.textContent = text;
     m.hidden = false;
     clearTimeout(ttsTimer);
