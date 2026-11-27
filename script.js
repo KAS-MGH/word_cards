@@ -766,6 +766,7 @@
       return;
     }
     err.hidden = true;
+    $('form-note').hidden = true;
     data.cards.push({
       id: Date.now().toString(36) + Math.random().toString(36).slice(2, 6),
       word: w,
@@ -797,6 +798,10 @@
     addAccent = '';
     $('in-word').focus();
     renderList();
+    if (!inScope(data.cards[data.cards.length - 1])) {
+      $('form-note').textContent = 'Добавлено вне выбранной темы — нажмите «Все», чтобы увидеть';
+      $('form-note').hidden = false;
+    }
     refreshAddHelpers();
   }
 
