@@ -172,4 +172,7 @@ textarea { min-height: 64px; resize: vertical; }
 .summary .row { margin-top: 12px; }
 .summary .row .btn { width: auto; }
 .deck-name { margin: -6px 0 12px; color: #6b7280; overflow-wrap: anywhere; }
+.deck-q { margin: 0; font-weight: 600; overflow-wrap: anywhere; }
+.item .row .small { align-self: center; }
+.tab { min-width: 0; padding: 8px; }
 .repeat-label { text-align: center; font-weight: 700; margin: 8px 0; }

@@ -354,12 +354,150 @@
   function showTab(name) {
     var train = name === 'train';
     $('view-train').hidden = !train;
-    $('view-deck').hidden = train;
+    $('view-deck').hidden = name !== 'deck';
+    $('view-decks').hidden = name !== 'decks';
     $('tab-train').classList.toggle('active', train);
-    $('tab-deck').classList.toggle('active', !train);
+    $('tab-deck').classList.toggle('active', name === 'deck');
+    $('tab-decks').classList.toggle('active', name === 'decks');
     editingId = null;
     confirmId = null;
-    if (train) { current = null; renderTrain(); } else { renderList(); }
+    deckEditId = null;
+    deckConfirmId = null;
+    if (train) { current = null; renderTrain(); }
+    else if (name === 'decks') { renderDecks(); }
+    else { renderList(); }
+  }
+
+  // ---------- колоды (спецификация 006) ----------
+  var deckEditId = null;     // колода, которую переименовывают
+  var deckConfirmId = null;  // колода, ожидающая подтверждения удаления
+
+  function plural(n, one, few, many) {
+    var m10 = n % 10, m100 = n % 100;
+    if (m10 === 1 && m100 !== 11) return one;
+    if (m10 >= 2 && m10 <= 4 && (m100 < 12 || m100 > 14)) return few;
+    return many;
+  }
+
+  function deckCount(id) {
+    return data.cards.filter(function (c) { return c.deck === id; }).length;
+  }
+
+  // текст ошибки названия или '' (name уже без пробелов по краям)
+  function deckNameError(name, exceptId) {
+    if (!name) return 'Введите название';
+    if (name.length > 30) return 'Не больше 30 символов';
+    var n = name.toLowerCase();
+    var dup = data.decks.some(function (k) { return k.id !== exceptId && k.name.trim().toLowerCase() === n; });
+    return dup ? 'Такая колода уже есть' : '';
+  }
+
+  function renderDecks() {
+    var list = $('deck-list');
+    list.textContent = '';
+    data.decks.forEach(function (k) {
+      var li = document.createElement('li');
+      li.className = 'item';
+      if (k.id === deckEditId) {
+        var inp = document.createElement('input');
+        inp.value = k.name;
+        inp.setAttribute('aria-label', 'Название колоды');
+        var err = document.createElement('p');
+        err.className = 'error';
+        err.hidden = true;
+        var row = document.createElement('div');
+        row.className = 'row';
+        var doSave = function () {
+          var nm = inp.value.trim();
+          var msg = deckNameError(nm, k.id);
+          if (msg) { err.textContent = msg; err.hidden = false; return; }
+          k.name = nm;
+          deckEditId = null;
+          save();
+          renderDeckName();
+          renderDecks();
+        };
+        inp.addEventListener('keydown', function (e) { if (e.key === 'Enter') doSave(); });
+        row.appendChild(button('Сохранить', 'btn', doSave));
+        row.appendChild(button('Отмена', 'btn btn-light', function () {
+          deckEditId = null;
+          renderDecks();
+        }));
+        li.appendChild(inp);
+        li.appendChild(err);
+        li.appendChild(row);
+      } else {
+        var n = deckCount(k.id);
+        var head = document.createElement('div');
+        head.className = 'item-top';
+        var b = document.createElement('b');
+        b.textContent = k.name;
+        head.appendChild(b);
+        var cnt = document.createElement('span');
+        cnt.className = 'chip';
+        cnt.textContent = n + ' ' + plural(n, 'карточка', 'карточки', 'карточек');
+        head.appendChild(cnt);
+        li.appendChild(head);
+        var row2 = document.createElement('div');
+        row2.className = 'row';
+        if (k.id === deckConfirmId) {
+          var q = document.createElement('p');
+          q.className = 'deck-q';
+          q.textContent = 'Удалить колоду и ' + n + ' ' + plural(n, 'карточку', 'карточки', 'карточек') + '?';
+          li.appendChild(q);
+          row2.appendChild(button('Да, удалить', 'btn btn-no', function () { deleteDeck(k.id); }));
+          row2.appendChild(button('Отмена', 'btn btn-light', function () {
+            deckConfirmId = null;
+            renderDecks();
+          }));
+        } else {
+          row2.appendChild(button('Переименовать', 'btn btn-light', function () {
+            deckEditId = k.id;
+            deckConfirmId = null;
+            renderDecks();
+          }));
+          if (data.decks.length > 1) {
+            row2.appendChild(button('Удалить', 'btn btn-no', function () {
+              deckConfirmId = k.id;
+              deckEditId = null;
+              renderDecks();
+            }));
+          } else {
+            var last = document.createElement('p');
+            last.className = 'small';
+            last.textContent = 'Нужна хотя бы одна колода';
+            row2.appendChild(last);
+          }
+        }
+        li.appendChild(row2);
+      }
+      list.appendChild(li);
+    });
+  }
+
+  function deleteDeck(id) {
+    if (data.decks.length < 2) return;
+    data.decks = data.decks.filter(function (k) { return k.id !== id; });
+    data.cards = data.cards.filter(function (c) { return c.deck !== id; });
+    if (settings.activeDeck === id) { settings.activeDeck = data.decks[0].id; saveSettings(); }
+    deckConfirmId = null;
+    resetSession();
+    save();
+    renderDeckName();
+    renderDecks();
+  }
+
+  function createDeck(e) {
+    e.preventDefault();
+    var nm = $('deck-in').value.trim();
+    var msg = deckNameError(nm, null);
+    var err = $('deck-error');
+    if (msg) { err.textContent = msg; err.hidden = false; return; }
+    err.hidden = true;
+    data.decks.push({ id: 'd' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6), name: nm });
+    $('deck-in').value = '';
+    save();
+    renderDecks();
   }
 
   // ---------- тренировка ----------
@@ -859,6 +997,8 @@
   // ---------- запуск ----------
   $('tab-train').addEventListener('click', function () { showTab('train'); });
   $('tab-deck').addEventListener('click', function () { showTab('deck'); });
+  $('tab-decks').addEventListener('click', function () { showTab('decks'); });
+  $('deck-form').addEventListener('submit', createDeck);
   makeSelect($('in-lang'), LANGS, settings.lastLang);
   makeSelect($('in-pos'), POS, '');
   $('in-word').addEventListener('input', refreshAddHelpers);

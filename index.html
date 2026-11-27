@@ -13,7 +13,8 @@
 
     <nav class="tabs">
       <button type="button" id="tab-train" class="tab active">Тренировка</button>
-      <button type="button" id="tab-deck" class="tab">Колода</button>
+      <button type="button" id="tab-deck" class="tab">Карточки</button>
+      <button type="button" id="tab-decks" class="tab">Колоды</button>
     </nav>
 
     <p id="tts-msg" class="error" role="status" hidden></p>
@@ -69,6 +70,15 @@
           <button type="button" id="btn-known" class="btn btn-yes">Знаю</button>
         </div>
       </div>
+    </section>
+
+    <section id="view-decks" hidden>
+      <form id="deck-form" class="form" autocomplete="off">
+        <input id="deck-in" type="text" placeholder="Название" aria-label="Название колоды">
+        <button type="submit" class="btn">Создать</button>
+        <p id="deck-error" class="error" hidden></p>
+      </form>
+      <ul id="deck-list" class="list"></ul>
     </section>
 
     <section id="view-deck" hidden>
