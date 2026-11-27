@@ -103,8 +103,40 @@
     return data.decks[0];
   }
 
+  // карточки активной колоды: всё остальное работает только с ними
+  function deckCards() {
+    var id = activeDeck().id;
+    return data.cards.filter(function (c) { return c.deck === id; });
+  }
+
+  // выбор колоды сверху
   function renderDeckName() {
-    $('deck-name').textContent = 'Колода: ' + activeDeck().name;
+    var sel = $('deck-select');
+    sel.textContent = '';
+    data.decks.forEach(function (k) {
+      var op = document.createElement('option');
+      op.value = k.id;
+      op.textContent = k.name;
+      sel.appendChild(op);
+    });
+    sel.value = activeDeck().id;
+  }
+
+  function setActiveDeck(id) {
+    if (id === activeDeck().id) return;
+    settings.activeDeck = id;
+    settings.activeTag = null;
+    saveSettings();
+    practiceAll = false;
+    resetSession();
+    query = '';
+    $('search').value = '';
+    editingId = null;
+    confirmId = null;
+    renderDeckName();
+    if (!$('view-train').hidden) renderTrain();
+    else if (!$('view-decks').hidden) renderDecks();
+    else renderList();
   }
 
   function save() {
@@ -143,7 +175,7 @@
 
   function isDuplicate(word, exceptId) {
     var n = norm(word);
-    return data.cards.some(function (c) {
+    return deckCards().some(function (c) {
       return c.id !== exceptId && norm(c.word) === n;
     });
   }
@@ -178,7 +210,7 @@
 
   function allTags() {
     var out = [];
-    data.cards.forEach(function (c) {
+    deckCards().forEach(function (c) {
       tagsOf(c).forEach(function (t) { if (out.indexOf(t) < 0) out.push(t); });
     });
     return out.sort();
@@ -433,6 +465,12 @@
         var b = document.createElement('b');
         b.textContent = k.name;
         head.appendChild(b);
+        if (k.id === activeDeck().id) {
+          var act = document.createElement('span');
+          act.className = 'chip';
+          act.textContent = 'Активная';
+          head.appendChild(act);
+        }
         var cnt = document.createElement('span');
         cnt.className = 'chip';
         cnt.textContent = n + ' ' + plural(n, 'карточка', 'карточки', 'карточек');
@@ -451,6 +489,9 @@
             renderDecks();
           }));
         } else {
+          if (k.id !== activeDeck().id) {
+            row2.appendChild(button('Выбрать', 'btn', function () { setActiveDeck(k.id); }));
+          }
           row2.appendChild(button('Переименовать', 'btn btn-light', function () {
             deckEditId = k.id;
             deckConfirmId = null;
@@ -497,6 +538,7 @@
     data.decks.push({ id: 'd' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6), name: nm });
     $('deck-in').value = '';
     save();
+    renderDeckName();
     renderDecks();
   }
 
@@ -518,7 +560,7 @@
   // очередь: нужные на сегодня (или все, если «Тренировать всё равно»); раньше дата — раньше показ, при равенстве — меньший уровень
   function queue() {
     var t = today();
-    return data.cards.filter(function (c) {
+    return deckCards().filter(function (c) {
       return inScope(c) && (practiceAll || c.nextReview <= t);
     }).sort(function (a, b) {
       if (a.nextReview !== b.nextReview) return a.nextReview < b.nextReview ? -1 : 1;
@@ -576,7 +618,7 @@
   function renderTrain() {
     $('btn-dir').textContent = settings.reverse ? 'Перевод → слово' : 'Слово → перевод';
     renderTagBars();
-    var empty = data.cards.length === 0;
+    var empty = deckCards().length === 0;
     $('train-empty').hidden = !empty;
     $('repeat-label').hidden = empty || !repeatMode;
     if (empty) {
@@ -594,7 +636,7 @@
     // удалённые или выпавшие из выбранной области карточки убираем из очереди
     sessionQ = sessionQ.filter(function (id) {
       var c = findCard(id);
-      return c && inScope(c);
+      return c && c.deck === activeDeck().id && inScope(c);
     });
     var card = sessionQ.length ? findCard(sessionQ[0]) : null;
     var done = !card;
@@ -712,10 +754,11 @@
     renderTagBars();
     refreshAddHelpers();
     var q = query.trim().toLowerCase();
-    var shown = data.cards.filter(function (c) { return inScope(c) && matches(c, q); });
+    var mine = deckCards();
+    var shown = mine.filter(function (c) { return inScope(c) && matches(c, q); });
 
-    $('deck-empty').hidden = data.cards.length > 0;
-    $('search-empty').hidden = !(data.cards.length > 0 && shown.length === 0);
+    $('deck-empty').hidden = mine.length > 0;
+    $('search-empty').hidden = !(mine.length > 0 && shown.length === 0);
 
     shown.forEach(function (c) {
       var li = document.createElement('li');
@@ -999,6 +1042,7 @@
   $('tab-deck').addEventListener('click', function () { showTab('deck'); });
   $('tab-decks').addEventListener('click', function () { showTab('decks'); });
   $('deck-form').addEventListener('submit', createDeck);
+  $('deck-select').addEventListener('change', function () { setActiveDeck($('deck-select').value); });
   makeSelect($('in-lang'), LANGS, settings.lastLang);
   makeSelect($('in-pos'), POS, '');
   $('in-word').addEventListener('input', refreshAddHelpers);
