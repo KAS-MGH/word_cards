@@ -61,8 +61,17 @@
     try {
       var d = JSON.parse(localStorage.getItem(KEY));
       if (d && Array.isArray(d.cards)) {
-        d.cards.forEach(normalizeCard);
-        return { cards: d.cards, step: d.step || 0 };
+        var good = d.cards.filter(function (c) {
+          return c && typeof c === 'object' &&
+            typeof c.word === 'string' && typeof c.translation === 'string';
+        });
+        good.forEach(function (c, i) {
+          if (typeof c.id !== 'string' || !c.id) {
+            c.id = Date.now().toString(36) + i + Math.random().toString(36).slice(2, 6);
+          }
+          normalizeCard(c);
+        });
+        return { cards: good, step: d.step || 0 };
       }
     } catch (e) { /* пусто или повреждено */ }
     return { cards: [], step: 0 };
