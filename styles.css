@@ -171,4 +171,5 @@ textarea { min-height: 64px; resize: vertical; }
 .summary .btn { width: 100%; }
 .summary .row { margin-top: 12px; }
 .summary .row .btn { width: auto; }
+.deck-name { margin: -6px 0 12px; color: #6b7280; overflow-wrap: anywhere; }
 .repeat-label { text-align: center; font-weight: 700; margin: 8px 0; }

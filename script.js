@@ -65,16 +65,46 @@
           return c && typeof c === 'object' &&
             typeof c.word === 'string' && typeof c.translation === 'string';
         });
+        var decks = normalizeDecks(d.decks);
         good.forEach(function (c, i) {
           if (typeof c.id !== 'string' || !c.id) {
             c.id = Date.now().toString(36) + i + Math.random().toString(36).slice(2, 6);
           }
           normalizeCard(c);
+          // нет колоды или такой колоды нет — первая колода (спецификация 006)
+          if (!decks.some(function (k) { return k.id === c.deck; })) c.deck = decks[0].id;
         });
-        return { cards: good, step: d.step || 0 };
+        return { cards: good, step: d.step || 0, decks: decks };
       }
     } catch (e) { /* пусто или повреждено */ }
-    return { cards: [], step: 0 };
+    return { cards: [], step: 0, decks: normalizeDecks(null) };
+  }
+
+  // всегда есть хотя бы одна колода; повреждённые записи отбрасываются
+  function normalizeDecks(list) {
+    var out = [];
+    if (Array.isArray(list)) {
+      list.forEach(function (k) {
+        if (k && typeof k.id === 'string' && k.id && typeof k.name === 'string' && k.name.trim() &&
+            !out.some(function (x) { return x.id === k.id; })) {
+          out.push({ id: k.id, name: k.name });
+        }
+      });
+    }
+    if (!out.length) out.push({ id: 'main', name: 'Основная' });
+    return out;
+  }
+
+  // активная колода: сохранённая или первая
+  function activeDeck() {
+    for (var i = 0; i < data.decks.length; i++) {
+      if (data.decks[i].id === settings.activeDeck) return data.decks[i];
+    }
+    return data.decks[0];
+  }
+
+  function renderDeckName() {
+    $('deck-name').textContent = 'Колода: ' + activeDeck().name;
   }
 
   function save() {
@@ -88,11 +118,12 @@
         return {
           reverse: s.reverse === true,
           activeTag: typeof s.activeTag === 'string' ? s.activeTag : null,
-          lastLang: typeof s.lastLang === 'string' ? s.lastLang : ''
+          lastLang: typeof s.lastLang === 'string' ? s.lastLang : '',
+          activeDeck: typeof s.activeDeck === 'string' ? s.activeDeck : null
         };
       }
     } catch (e) { /* ignore */ }
-    return { reverse: false, activeTag: null, lastLang: '' };
+    return { reverse: false, activeTag: null, lastLang: '', activeDeck: null };
   }
 
   function saveSettings() {
@@ -792,7 +823,8 @@
       nextReview: today(),
       history: [],
       known: 0,
-      unknown: 0
+      unknown: 0,
+      deck: activeDeck().id
     });
     settings.lastLang = $('in-lang').value;
     saveSettings();
@@ -864,5 +896,6 @@
     renderList();
   });
 
+  renderDeckName();
   renderTrain();
 })();
